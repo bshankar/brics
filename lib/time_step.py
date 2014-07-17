@@ -94,7 +94,7 @@ class timeStep(globalVariables):
             self.eqObj.u0_.vector()[:] = self.eqObj.u_.vector()
             solver.solve()
             gv_ = {func.__name__:func() for func in self.gv}
-            print gv_
+
             if MPI.process_number() == 0:
                 print "Computed global variables ..."
                 print "System State:  ",

@@ -32,7 +32,7 @@ wf = rbc.cn()  # crank nicholson weak form
 
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(rbc, 0, 0.2, 0.01, 0.02, gv=[glob.Ewth, glob.Ey])
+ts = timeStep(rbc, 0, 0.2, 0.01, 0.02, gv=[glob.Ey, glob.Eth, glob.Nu])
 bcs = b.make_zero(b.on_base())    + b.make_zero(b.on_lid(Lz)) + \
       b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(Lz), 2)
 

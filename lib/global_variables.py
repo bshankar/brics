@@ -50,14 +50,14 @@ class globalVariables:
         """
         if self.Pscaling == 'large':
             if self.Uscaling == 'small':
-                return 1 + Ewth()
+                return 1 + self.Ewth()
             elif self.Uscaling == 'large':
-                return 1 + sqrt(self.R*self.P)*Ewth()
+                return 1 + sqrt(self.R*self.P)*self.Ewth()
         elif self.Pscaling == 'small':
             if self.Uscaling == 'small':
-                return 1 + self.P**2*Ewth()
+                return 1 + self.P**2*self.Ewth()
             elif self.Uscaling == 'large':
-                return 1 + self.P*sqrt(self.R*self.P)*Ewth()
+                return 1 + self.P*sqrt(self.R*self.P)*self.Ewth()
 
     def Ey(self):
         """
@@ -88,8 +88,8 @@ class globalVariables:
         return assemble(dC_*dx)/self.vol
             
     def Re(self):
-        return sqrt(Ey())/new()
+        return sqrt(self.Ey())/self.new()
             
     def Re_lambda(self):
-        return Ey()*sqrt(15/dissipationU())
+        return self.Ey()*sqrt(15/self.dissipationU())
                 
