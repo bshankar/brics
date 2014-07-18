@@ -1,8 +1,7 @@
 *Brics**
 =========
 An Incompressible Rayleigh Benard Equation solver that uses FEniCS with
-with PETSc backend that aims to be efficient and parallel. 
-BRICS is written in python 2.7
+with PETSc backend. BRICS is written in python 2.7
 
 Features:
 =========
