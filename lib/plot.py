@@ -1,4 +1,4 @@
-***
+"""
 Brics is a finite element solver for Rayleigh Benard equations
 based on FEniCS and PETSc.
 Copyright (C) 2013-2014 E. Bhavani Shankar
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-***
+"""
 
 
 import h5py
