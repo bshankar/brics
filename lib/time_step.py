@@ -96,7 +96,7 @@ class timeStep(globalVariables):
             
             # flush output immediately
             u_file.parameters["flush_output"] = True
-            u_file.parameters["flush_output"] = True
+            c_file.parameters["flush_output"] = True
             
             # don't rewrite
             u_file.parameters["rewrite_function_mesh"] = False
