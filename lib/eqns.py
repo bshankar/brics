@@ -56,6 +56,7 @@ class RayleighBenard():
         self.U = 0.5*(self.u + self.u0)
         self.C = 0.5*(self.c + self.c0)
         
+        self.boxObj = boxObj
         
     def cn(self, div=div, grad=grad, dx=dx, nlt=1):
         """
