@@ -173,32 +173,25 @@ def DenserCylinder(radius, height, m, n, s=1.3, outputFormat='xml'):
     saveMesh(mesh, 'Cylinder%g_%g_%g_%g_%g'%(height, radius, m, n, s), outputFormat)
 
 
-def interpolate_to_mesh(u1, mesh1, mesh2, orders=(2,1)):
+def interpolate_to_mesh(u1, mesh1, mesh2, orders=(1,1)):
     """
-    u1    ---- numpy array
+    u1    ---- dolfin function
     mesh1 ---- From mesh
     mesh2 ---- to mesh
-    dim   ---- # of dimensions (1 2 or 3)
     order ---- order of polynomials on from Func space to to Func space.
     
     Returns:
-        u2 ---- numpy array
+        u2 ---- dolfin function
     """
 
-    dim = len(u1.shape)
+    dim = u.rank() + 1
 
-    if dim==1:
-        V1 = FunctionSpace(mesh1, 'CG', orders[0])
+    if dim == 1:
         V2 = FunctionSpace(mesh2, 'CG', orders[1])
-    
     else:
-        V1 = VectorFunctionSpace(mesh1, 'CG', orders[0], dim=dim)
         V2 = VectorFunctionSpace(mesh2, 'CG', orders[1], dim=dim)
 
-    u1_ = Function(V1)
-    u1_.vector()[:] = u1
-    
-    u2_ = interpolate_nonmatching_mesh(u1_, V2)
-    return u2_.vector().array()
+    u2 = interpolate_nonmatching_mesh(u1, V2)
+    return u2
     
     
