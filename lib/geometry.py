@@ -42,7 +42,8 @@ class box:
         self.Lz = dim[-1]
 
         if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
-            print "Creating a mesh ..."
+            if MPI.process_number() == 0:
+                print "Creating a mesh ..."
             DenserBox(dim, res) # create a mesh
         
         # load mesh
