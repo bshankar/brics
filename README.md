@@ -22,9 +22,6 @@ Dependencies:
 
 Running the code:
 =================
-
-.. code:: bash
-
     $ git clone https://bshankar@bitbucket.org/bshankar/brics.git
     $ python2 input.py   # input file
 
