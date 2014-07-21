@@ -107,7 +107,7 @@ class timeStep(globalVariables):
         t, T = self.t, self.T
         if MPI.process_number() == 0:
             print "Time stepping with a constant dt=%g"%self.dt
-            if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
+            if not os.path.isfile("output/glob.d"):
                 if MPI.process_number() == 0:
                     print "creating file output/glob.d"
                 os.system("mkdir -p output/")
