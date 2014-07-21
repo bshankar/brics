@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-
-from eqns import *
-from geometry import *
 from global_variables import *
+from mesh_tools import *
+from geometry import *
+from eqns import *
 import os
 
 # Class representing the intial conditions
@@ -76,7 +76,7 @@ class timeStep(globalVariables):
             eqObj.u_.interpolate(constInitCondition_2d())
             eqObj.u0_.interpolate(constInitCondition_2d())
   
-    def constant_dt(self, solver, save_as="hdf5"):
+    def constant_dt(self, solver, save_as="hdf5", save_uniform=False):
         """
         Use constant dt for time stepping
         
@@ -84,20 +84,22 @@ class timeStep(globalVariables):
         save_as  ---- format to save
         
             "hdf5" to save/load data
-            "xdmf" for visualization
+            "xdmf" for quick visualization (not compatible with save_uniform)
             "foldered_hdf5" for large data sets
+            
+        save_uniform ---- create and save a dataset on a uniform mesh.
         """
         if save_as == "hdf5":
             out_file = HDF5File(self.comm, "output/out.h5", "w")
+            if save_uniform:
+                out_file_u = HDF5File(self.comm, "output/out_uniform.h5", "w")
         
         elif save_as == "xdmf":
             u_file = XDMFFile(self.comm, "output/u.xdmf")
             c_file = XDMFFile(self.comm, "output/c.xdmf")
-            
             # flush output immediately
             u_file.parameters["flush_output"] = True
             c_file.parameters["flush_output"] = True
-            
             # don't rewrite
             u_file.parameters["rewrite_function_mesh"] = False
             c_file.parameters["rewrite_function_mesh"] = False
@@ -122,24 +124,49 @@ class timeStep(globalVariables):
             
                 # Save global variables in glob.d
                 glob_file.write("".join(str(gv_[i])+"  " for i in gv_)+"\n")
+
+            u, p, c = self.eqObj.u_.split()[:]            
             
+            if save_uniform:
+                mesh1 = self.eqObj.boxObj.mesh
+                dim = self.eqObj.boxObj.dim
+                mesh2 = denserMesh(dim[0], dim[1], s=1.0)
+                u1 = interpolate_to_mesh(u, mesh1, mesh2)
+                p1 = interpolate_to_mesh(p, mesh1, mesh2)
+                c1 = interpolate_to_mesh(c, mesh1, mesh2)
+                
             if save_as == "hdf5" and t % self.dt_save < 1e-14:
                 # save in hdf5 format
-                out_file.write(self.eqObj.u_.split()[0], "u/%g"%t)
-                out_file.write(self.eqObj.u_.split()[1], "p/%g"%t)
-                out_file.write(self.eqObj.u_.split()[2], "c/%g"%t)
+                out_file.write(u, "velocity/%g"%t)
+                out_file.write(p, "pressure/%g"%t)
+                out_file.write(c, "temperature/%g"%t)
+                
+                if save_uniform:
+                    out_file_u.write(u1, "velocity/%g"%t)
+                    out_file_u.write(p1, "pressure/%g"%t)
+                    out_file_u.write(c1, "temperature/%g"%t)
 
             elif save_as == "xdmf" and t % self.dt_save < 1e-14:
-                u_file << self.eqObj.u_.split()[0], t
-                c_file << self.eqObj.u_.split()[1], t
+                u_file << u, t
+                c_file << c, t
                 
             elif save_as == "foldered_hdf5" and t % self.dt_save < 1e-14:
                 dir_ = "output/time_%g"%t
                 if not os.path.exists(dir_):
                     os.makedirs(dir_)
+                    
                 u_file = HDF5File(self.comm, "%s/u.h5"%dir_, 'w') 
                 p_file = HDF5File(self.comm, "%s/p.h5"%dir_, 'w') 
                 c_file = HDF5File(self.comm, "%s/c.h5"%dir_, 'w')
-                u_file.write(self.eqObj.u_.split()[0], "velocity")
-                p_file.write(self.eqObj.u_.split()[1], "pressure")
-                c_file.write(self.eqObj.u_.split()[2], "temperature")
+                u_file.write(u, "velocity")
+                p_file.write(p, "pressure")
+                c_file.write(c, "temperature")
+                
+                if save_uniform:
+                    u_file_u = HDF5File(self.comm, "%s/u_uniform.h5"%dir_, 'w') 
+                    p_file_u = HDF5File(self.comm, "%s/p_uniform.h5"%dir_, 'w') 
+                    c_file_u = HDF5File(self.comm, "%s/c_uniform.h5"%dir_, 'w')
+                    u_file_u.write(u1, "velocity")
+                    p_file_u.write(p1, "pressure")
+                    c_file_u.write(c1, "temperature")
+                    
