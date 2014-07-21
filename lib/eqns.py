@@ -32,12 +32,8 @@ class RayleighBenard():
         """
         
         # set the parameters
-        self.scaling = scaling
-        self.R = R
-        self.P = P
-        self.dt = dt
-        self.dim = dim
-        self.I = Identity(dim)
+        self.scaling, self.dim = scaling, dim
+        self.R, self.P, self.dt, self.I = R, P, dt, I
         
         # create functions
         # Define trail and test functions
@@ -67,20 +63,12 @@ class RayleighBenard():
         
         """
         
-        R = self.R
-        P = self.P
-        dT = self.dt
-        I = self.I
-        u = self.u
-        u0 = self.u0
-        U = self.U
-        c = self.c
-        c0 = self.c0
-        C = self.C
+        # Assign to local variables
+        R, P, dt, I = self.R, self.P, self.dt, self.I
+        u, u0, U    = self.u, self.u0, self.U
+        c, c0, C    = self.c, self.c0, self.C
         p = self.p
-        v_u = self.v_u
-        v_c = self.v_c
-        v_p = self.v_p
+        v_u, v_p, v_c = self.v_u, self.v_p, self.v_c
         
         zi = self.dim-1 # index of z component
         Pscaling, Uscaling = self.scaling        
