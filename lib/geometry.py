@@ -38,6 +38,7 @@ class box:
         pb     ----  periodic boundary condition function
 		"""
         self.dim = dim
+        self.res = res
         self.Lz = dim[-1]
 
         if not os.path.isfile(box_mesh_name(dim, res)+".h5"):

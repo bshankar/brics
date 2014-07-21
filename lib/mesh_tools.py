@@ -184,14 +184,14 @@ def interpolate_to_mesh(u1, mesh1, mesh2, orders=(1,1)):
         u2 ---- dolfin function
     """
 
-    dim = u.rank() + 1
+    dim = u1.rank() + 1
 
     if dim == 1:
         V2 = FunctionSpace(mesh2, 'CG', orders[1])
     else:
         V2 = VectorFunctionSpace(mesh2, 'CG', orders[1], dim=dim)
 
-    u2 = interpolate_nonmatching_mesh(u1, V2)
+    u2 = interpolate(u1, V2)
     return u2
     
     

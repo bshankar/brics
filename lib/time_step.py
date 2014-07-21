@@ -130,7 +130,18 @@ class timeStep(globalVariables):
             if save_uniform:
                 mesh1 = self.eqObj.boxObj.mesh
                 dim = self.eqObj.boxObj.dim
-                mesh2 = denserMesh(dim[0], dim[1], s=1.0)
+                res = self.eqObj.boxObj.res
+                
+                if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
+                    print "Creating a uniform mesh ..."
+                    DenserBox(dim, res) # create a mesh
+        
+                # load mesh
+                comm = mpi_comm_world()
+                f = HDF5File(comm, box_mesh_name(dim, res)+".h5", 'r')
+                mesh2 = Mesh()
+                f.read(mesh2, 'mesh', False)        
+                
                 u1 = interpolate_to_mesh(u, mesh1, mesh2)
                 p1 = interpolate_to_mesh(p, mesh1, mesh2)
                 c1 = interpolate_to_mesh(c, mesh1, mesh2)

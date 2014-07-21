@@ -68,6 +68,6 @@ prm['newton_solver']['relative_tolerance'] = 1E-5
 prm['newton_solver']['maximum_iterations'] = 25
 prm['newton_solver']['relaxation_parameter'] = 1.0
 
-ts.constant_dt(solver, "foldered_hdf5")
+ts.constant_dt(solver, "foldered_hdf5", True)
 
 ################################################################
