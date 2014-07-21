@@ -36,5 +36,4 @@ For full details, read the copy of the GPL found in the file named Copying.txt
 Useful links:
 =============
 * FEniCS http://fenicsproject.org/
-* Incompressible Rayleigh benard equations and the Boundary conditions
 * tests Brics passed so far. https://github.com/bshankar/brics/wiki/Tests
