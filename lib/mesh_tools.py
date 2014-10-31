@@ -57,24 +57,24 @@ def saveMesh(comm, mesh, filename, outputFormat="hdf5"):
     3. hdf5 --- saving and loading data
     """
     if outputFormat == 'xml':
-        if MPI.process_number() == 0:
+        if MPI.rank(comm) == 0:
             print "saving mesh as xml.gz ..."
         file = File(filename + '.xml.gz', "compressed")
         file << mesh
     elif  outputFormat == 'pvd':
-        if MPI.process_number() == 0:
+        if MPI.rank(comm) == 0:
             print "saving mesh as pvd ..."
         file = File(filename + '.pvd')
         file << mesh
         
     elif outputFormat == 'hdf5':
-        if MPI.process_number() == 0:
+        if MPI.rank(comm) == 0:
             print "saving mesh in hdf5 format ..."
         f = HDF5File(comm, filename + '.h5', 'w')
         f.write(mesh, 'mesh')
 
     elif outputFormat == 'xdmf':
-        if MPI.process_number() == 0:
+        if MPI.rank(comm) == 0:
             print "saving mesh as an xdmf"
         file = File(filename + ".xdmf")
         file << mesh

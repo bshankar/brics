@@ -109,10 +109,10 @@ class timeStep(globalVariables):
             c_file.parameters["rewrite_function_mesh"] = False
             
         t, T = self.t, self.T
-        if MPI.process_number() == 0:
+        if MPI.rank(comm) == 0:
             print "Time stepping with a constant dt=%g"%self.dt
             if not os.path.isfile("output/glob.d"):
-                if MPI.process_number() == 0:
+                if MPI.rank(comm) == 0:
                     print "creating file output/glob.d"
                 os.system("mkdir -p output/")
                 os.system("touch output/glob.d")
@@ -120,13 +120,13 @@ class timeStep(globalVariables):
         
         while t < T:
             t += self.dt
-            if MPI.process_number() == 0:
+            if MPI.rank(comm) == 0:
                 print "t=%g out of T=%g"%(t, T)
             self.eqObj.u0_.vector()[:] = self.eqObj.u_.vector()
             solver.solve()
             gv_ = {func.__name__:func() for func in self.gv}
 
-            if MPI.process_number() == 0:
+            if MPI.rank(comm) == 0:
                 print "Computed global variables ..."
                 print "System State:  ",
                 print ([i + ": %g"%gv_[i] for i in gv_])
