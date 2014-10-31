@@ -23,7 +23,8 @@ Dependencies:
 Running the code:
 =================
     $ git clone https://bshankar@bitbucket.org/bshankar/brics.git
-    $ python2 input.py   # input file
+    $ python2 input2d.py   # sample input file for 2d box
+    $ python2 input3d.py   # sample input file for 3d box
 
 Terms of Use
 ============
