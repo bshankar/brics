@@ -90,7 +90,7 @@ def box_mesh_name(dim, res):
     return ".cache/" + mesh_id
 
 
-def DenserBox(dim, res, s=1.2, outputFormat="hdf5"):    
+def DenserBox(comm, dim, res, s=1.2, outputFormat="hdf5"):    
     
     if len(dim) == 2:
         mesh = RectangleMesh(0, 0, dim[0], dim[1], res[0], res[1])
@@ -112,7 +112,7 @@ def DenserBox(dim, res, s=1.2, outputFormat="hdf5"):
     if len(dim) == 3:
         mesh.coordinates()[:, 2] = 0.5*(denser(Z, s) + 1)*dim[2]
     # save the mesh
-    saveMesh(mesh, box_mesh_name(dim, res), outputFormat) 
+    saveMesh(comm, mesh, box_mesh_name(dim, res), outputFormat) 
         
 
 def DenserEllipticCylinder(h, Nv, Nz, s=1.3, outputFormat='xml'):

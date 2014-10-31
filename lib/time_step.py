@@ -143,7 +143,7 @@ class timeStep(globalVariables):
                 
                 if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
                     print "Creating a uniform mesh ..."
-                    DenserBox(dim, res) # create a mesh
+                    DenserBox(comm, dim, res) # create a mesh
         
                 # load mesh
                 f = HDF5File(self.comm, box_mesh_name(dim, res)+".h5", 'r')

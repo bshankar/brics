@@ -43,7 +43,7 @@ class box:
         if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
             if MPI.rank(comm) == 0:
                 print "Creating a mesh ..."
-            DenserBox(dim, res) # create a mesh
+            DenserBox(comm, dim, res) # create a mesh
         
         # load mesh
         f = HDF5File(comm, box_mesh_name(dim, res)+".h5", 'r')
