@@ -47,7 +47,7 @@ def denser(x, s=1.3):
 denser = np.vectorize(denser)
 is_negative = np.vectorize(is_negative)
 
-def saveMesh(mesh, filename, outputFormat="hdf5"):
+def saveMesh(comm, mesh, filename, outputFormat="hdf5"):
     """
     save a mesh in given output format
     
@@ -70,7 +70,6 @@ def saveMesh(mesh, filename, outputFormat="hdf5"):
     elif outputFormat == 'hdf5':
         if MPI.process_number() == 0:
             print "saving mesh in hdf5 format ..."
-        comm = mpi_comm_world()
         f = HDF5File(comm, filename + '.h5', 'w')
         f.write(mesh, 'mesh')
 

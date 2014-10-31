@@ -33,6 +33,7 @@ from time_step import *
 #PETScOptions.set("pc_type", "lu")
 
 #set_log_level(PROGRESS)
+comm = mpi_comm_world()
 
 # Form compiler options
 parameters["form_compiler"]["optimize"]     = False
@@ -44,15 +45,15 @@ parameters["allow_extrapolation"] = True
 Lx, Ly, Lz = 2.02, 2.02, 1  # DONT modify Lz!
 
 pb = periodicDomain(Lx, Ly, 2)
-b = box((Lx, Ly, Lz), (32, 32, 16), pb=pb, orders=(2, 1, 1))  # geometry
+b = box((Lx, Ly, Lz), (64, 64, 32), pb=pb, orders=(1, 1, 1))  # geometry
 rbc = RayleighBenard(b, 1800, 1.0, dim=3, scaling=('large', 'small'))  # eqns
 wf = rbc.cn()  # crank nicholson weak form
 
 # initial conditions
 glob = globalVariables(b, rbc)
 ts = timeStep(rbc, 0, 5, 0.01, 0.01, gv=[glob.Ey, glob.Eth, glob.Nu])
-bcs = b.make_zero(b.on_base())    + b.make_zero(b.on_lid(Lz)) + \
-      b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(Lz), 2)
+bcs = b.make_zero(b.on_base())    + b.make_zero(b.on_lid()) + \
+      b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
 
 ################################################################
 
@@ -62,7 +63,7 @@ solver = NonlinearVariationalSolver(problem)
 
 #Solver parameters
 prm = solver.parameters
-prm['newton_solver']['linear_solver'] = 'gmres'
+prm['newton_solver']['linear_solver'] = 'lu'
 prm['newton_solver']['absolute_tolerance'] = 1E-8
 prm['newton_solver']['relative_tolerance'] = 1E-7
 prm['newton_solver']['maximum_iterations'] = 25

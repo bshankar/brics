@@ -29,7 +29,7 @@ class box:
     specify the boundary conditions
     """
     
-    def __init__(self, dim, res, orders=(1,1,1), scales=('large', 'small'), pb=None):
+    def __init__(self, comm, dim, res, orders=(1,1,1), scales=('large', 'small'), pb=None):
         """
 		dim    ----  dimensions of the box
         res    ----  resolution of the box
@@ -46,7 +46,6 @@ class box:
             DenserBox(dim, res) # create a mesh
         
         # load mesh
-        comm = mpi_comm_world()
         f = HDF5File(comm, box_mesh_name(dim, res)+".h5", 'r')
         self.mesh = Mesh()
         f.read(self.mesh, 'mesh', False)

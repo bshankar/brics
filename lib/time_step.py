@@ -46,7 +46,7 @@ class constInitCondition_3d(Expression):
 
 class timeStep(globalVariables):
 	
-    def __init__(self, eqObj, t, T, dt=0.01, dt_save=0.01, gv=[], initData=None):
+    def __init__(self, comm, eqObj, t, T, dt=0.01, dt_save=0.01, gv=[], initData=None):
         """
         eqObj     ---- eqns object
         gvObj     ---- global variables object
@@ -62,9 +62,8 @@ class timeStep(globalVariables):
         self.dt_save = dt_save
         self.gv = gv
         self.eqObj = eqObj
+        self.comm = comm
 
-        self.comm = mpi_comm_world()        
-        
         if initData != None:
             # read the latest solution
             f = HDF5File(self.comm, initData, 'r')
@@ -147,8 +146,7 @@ class timeStep(globalVariables):
                     DenserBox(dim, res) # create a mesh
         
                 # load mesh
-                comm = mpi_comm_world()
-                f = HDF5File(comm, box_mesh_name(dim, res)+".h5", 'r')
+                f = HDF5File(self.comm, box_mesh_name(dim, res)+".h5", 'r')
                 mesh2 = Mesh()
                 f.read(mesh2, 'mesh', False)        
                 

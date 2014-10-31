@@ -33,10 +33,11 @@ from time_step import *
 #PETScOptions.set("pc_type", "lu")
 
 set_log_level(ERROR)
+comm = mpi_comm_world()
 
 # Form compiler options
-parameters["form_compiler"]["optimize"]     = False
-parameters["form_compiler"]["cpp_optimize"] = False
+parameters["form_compiler"]["optimize"]     = True
+parameters["form_compiler"]["cpp_optimize"] = True
 parameters["linear_algebra_backend"] = "PETSc"
 parameters["allow_extrapolation"] = True
 
@@ -46,13 +47,13 @@ Lx, Lz = 2.02, 1.0  # DONT modify Lz!
 # Lx Ly Lz must be set at the top of lib/geometry.py!
 
 pb = periodicDomain(Lx, Lz, 1)
-b = box((Lx, Lz), (128, 64), orders=(2, 1, 1), pb=pb)  # geometry
+b = box(comm, (Lx, Lz), (128, 64), orders=(2, 1, 1), pb=pb)  # geometry
 rbc = RayleighBenard(b, 10000, 0.71, scaling=('large', 'small'))  # eqns
 wf = rbc.cn()  # crank nicholson weak form
 
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(rbc, 0, 10.0, 0.01, 0.2, gv=[glob.Ey, glob.Eth, glob.Nu])
+ts = timeStep(comm, rbc, 0, 10.0, 0.01, 0.2, gv=[glob.Ey, glob.Eth, glob.Nu])
 
 # set the boundary conditions
 temp_bcs =  b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
@@ -74,6 +75,19 @@ prm['newton_solver']['absolute_tolerance'] = 1E-8
 prm['newton_solver']['relative_tolerance'] = 1E-7
 prm['newton_solver']['maximum_iterations'] = 25
 prm['newton_solver']['relaxation_parameter'] = 1.0
+
+#prm = solver.parameters
+#prm['nonlinear_solver'] = 'snes' 
+#prm_snes   = prm['snes_solver']
+#prm_snes['linear_solver'] = 'gmres'
+#prm_snes['absolute_tolerance'] = 1e-7
+#prm_snes['relative_tolerance'] = 1e-6
+#prm_snes['solution_tolerance'] = 1e-8
+#prm_snes['report'] = False
+#prm_krylov = prm_snes['krylov_solver']
+#prm_krylov['absolute_tolerance'] = 1e-7
+#prm_krylov['relative_tolerance'] = 1e-5
+#prm_krylov['gmres']['restart'] = 100
 
 #plot(b.mesh)
 #interactive()
