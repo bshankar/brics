@@ -23,7 +23,7 @@ from geometry import *
 
 class RayleighBenard():
     
-    def __init__(self, boxObj, R, P, dt=0.01, dim=2, scaling=("small", "small")):
+    def __init__(self, boxObj, R, P, dt=0.01, dim=2, scaling=("large", "small")):
         """
         R   ---- Rayleigh number
         P   ---- Prandl number
@@ -99,7 +99,9 @@ class RayleighBenard():
             if nlt:
                 # enable the non linear terms
                 L0 = L0 + inner(0.5*(dot(u0, grad(u0)) + dot(u, grad(u))), v_u)*dx
+                #L0 = L0 + inner(dot(u0, grad(u0)), v_u)*dx
                 L1 = L1 + inner(0.5*(dot(u0, grad(c0)) + dot(u, grad(c))), v_c)*dx
+                #L1 = L1 + inner(dot(u0, grad(c0)), v_c)*dx
 
         if Pscaling == 'small':
             if Uscaling == 'small':
@@ -127,6 +129,8 @@ class RayleighBenard():
             if nlt:
                 # enable the non linear terms
                 L0 = L0 + inner(0.5*(dot(u0, grad(u0)) + dot(u, grad(u))), v_u)*dx
+                #L0 = L0 + inner(dot(u0, grad(u0)), v_u)*dx
                 L1 = L1 + P*inner(0.5*(dot(u0, grad(c0)) + dot(u, grad(c))), v_c)*dx
+                #L1 = L1 + P*inner(dot(u0, grad(c0)), v_c)*dx
 
         return L0 + L1

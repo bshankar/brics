@@ -22,9 +22,9 @@ from geometry import *
 from eqns import *
 
 class globalVariables:
-    def __init__(self, geObj, eqObj, scales=("small", "small")):
-        self.Uscaling = scales[0]
-        self.Pscaling = scales[1]
+    def __init__(self, geObj, eqObj, scales=("large", "small")):
+        self.Pscaling = scales[0]
+        self.Uscaling = scales[1]
         self.eqObj = eqObj
         
         # set some variables from eqObj
@@ -37,7 +37,7 @@ class globalVariables:
         
         self.mesh = geObj.mesh
         self.vol = assemble(Constant(1)*dx(self.mesh))
-        
+
     def new(self):
         """
         Constant new

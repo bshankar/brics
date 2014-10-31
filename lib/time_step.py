@@ -28,7 +28,7 @@ class constInitCondition_2d(Expression):
     def __init__(self):
         pass
     def eval(self, values, x):
-        values[3] = 0.01
+        values[3] = 0.01*(1-sin(2*pi*x[1]))
             
     def value_shape(self):
         return (4,)
@@ -38,7 +38,7 @@ class constInitCondition_3d(Expression):
     def __init__(self):
         pass
     def eval(self, values, x):
-        values[4] = 0.01
+        values[4] = 0.01*(1-sin(2*pi*x[2]))
             
     def value_shape(self):
         return (5,)
@@ -73,8 +73,13 @@ class timeStep(globalVariables):
             f.read(eqObj.c, 'c/%g'%t)
         else:
             # set initial conditions
-            eqObj.u_.interpolate(constInitCondition_2d())
-            eqObj.u0_.interpolate(constInitCondition_2d())
+            if eqObj.dim == 2:
+                eqObj.u_.interpolate(constInitCondition_2d())
+                eqObj.u0_.interpolate(constInitCondition_2d())
+            elif eqObj.dim == 3:
+                eqObj.u_.interpolate(constInitCondition_3d())
+                eqObj.u0_.interpolate(constInitCondition_3d())
+                
   
     def constant_dt(self, solver, save_as="hdf5", save_uniform=False):
         """
@@ -112,7 +117,7 @@ class timeStep(globalVariables):
                     print "creating file output/glob.d"
                 os.system("mkdir -p output/")
                 os.system("touch output/glob.d")
-            glob_file = open("output/glob.d", 'a')
+            glob_file = open("output/glob.d", 'a', 0)
         
         while t < T:
             t += self.dt
@@ -128,7 +133,7 @@ class timeStep(globalVariables):
                 print ([i + ": %g"%gv_[i] for i in gv_])
             
                 # Save global variables in glob.d
-                glob_file.write("".join(str(gv_[i])+"  " for i in gv_)+"\n")
+                glob_file.write(str(t) + " " + "".join(str(gv_[i])+"  " for i in gv_)+"\n")
 
             u, p, c = self.eqObj.u_.split()[:]            
             

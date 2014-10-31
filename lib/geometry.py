@@ -22,7 +22,6 @@ from dolfin import *
 from mesh_tools import *
 import os.path
 
-
 class box:
     """
     Generate/load an appropriate box mesh
@@ -30,7 +29,7 @@ class box:
     specify the boundary conditions
     """
     
-    def __init__(self, dim, res, orders=(1,1,1), scales=('small', 'small'), pb=None):
+    def __init__(self, dim, res, orders=(1,1,1), scales=('large', 'small'), pb=None):
         """
 		dim    ----  dimensions of the box
         res    ----  resolution of the box
@@ -39,7 +38,7 @@ class box:
 		"""
         self.dim = dim
         self.res = res
-        self.Lz = dim[-1]
+        self.Lz = 1
 
         if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
             if MPI.process_number() == 0:
@@ -65,25 +64,22 @@ class box:
         self.VWX = MixedFunctionSpace([V, W, X])
         
     
-    def on_lid(self, Lz):
-        
+    def on_lid(self):
         class on_lid_class(SubDomain):
         
             def inside(self, x, on_boundary):
-                return bool(near(x[1], Lz) and on_boundary)
+                return bool(near(x[-1], 1) and on_boundary)
                 
         return on_lid_class()
 
     class on_base(SubDomain):
-        
         def inside(self, x, on_boundary):
-            return bool(near(x[1], 0) and on_boundary)
+            return bool(near(x[-1], 0) and on_boundary)
         
     class on_side_walls(SubDomain):
-        
         def inside(self, x, on_boundary):
-            return bool(on_boundary and not (near(x[1], 0) \
-            or near(x[1], Lz)))
+            return bool(on_boundary and not (near(x[-1], 0) \
+            or near(x[-1], 1)))
         
     class on_all_walls(SubDomain):
         
@@ -101,51 +97,48 @@ class box:
             return [DirichletBC(self.VWX.sub(0), zeros, direction), ]
         else:
             return [DirichletBC(self.VWX.sub(sS), 0, direction)]
-        
 
 def periodicDomain(Lx, Ly, directions):
     if directions == 1:
-        
         class along_x(SubDomain):
             # Left boundary is "target domain" G
             def inside(self, x, on_boundary):
                 return bool(near(x[0], 0) and on_boundary)
-                
-                # Map right boundary (H) to left boundary (G)
+
+            # Map right boundary (H) to left boundary (G)
             def map(self, x, y):
                 y[0] = x[0] - Lx
                 y[1] = x[1]
-
+				
         return along_x()
-        
-    else:
 
+    else:
         # Periodic boundary condition along two horizontal directions
         class along_xy(SubDomain):
-            
+
             def inside(self, x, on_boundary):
                 # return True if on one of the two left boundaries 
                 # AND NOT on one of the two slave edges
-                return bool((near(x[0], 0) or near(x[1], 0)) and 
-                (not ((near(x[0], Lx) and near(x[1], 0)) or 
-                (near(x[0], 0) and near(x[1], 0)))) and on_boundary)
+                return bool((near(x[0], 0) or near(x[1], 0)) and
+                           (not ((near(x[0], Lx) and near(x[1], 0)) or
+                           (near(x[0], 0) and near(x[1], 0)))) and on_boundary)
 
             def map(self, x, y):
-                if near(x[0], Lx) and near(x[1], Ly):
-                    y[0] = x[0] - Lx
-                    y[1] = x[1] - Ly
-                    y[2] = x[2]
-                elif near(x[0], Lx):
-                    y[0] = x[0] - Lx
-                    y[1] = x[1]
-                    y[2] = x[2]
-                elif near(x[1], Ly):
-                    y[0] = x[0]
-                    y[1] = x[1] - Ly
-                    y[2] = x[2]
-                else:
-                    y[0] = -1000
-                    y[1] = -1000
-                    y[2] = -1000
-                    
+               if near(x[0], Lx) and near(x[1], Ly):
+                   y[0] = x[0] - Lx
+                   y[1] = x[1] - Ly
+                   y[2] = x[2]
+               elif near(x[0], Lx):
+                   y[0] = x[0] - Lx
+                   y[1] = x[1]
+                   y[2] = x[2]
+               elif near(x[1], Ly):
+                   y[0] = x[0]
+                   y[1] = x[1] - Ly
+                   y[2] = x[2]
+               else:
+                   y[0] = -1000
+                   y[1] = -1000
+                   y[2] = -1000
+					
         return along_xy()
