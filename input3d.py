@@ -45,13 +45,13 @@ parameters["allow_extrapolation"] = True
 Lx, Ly, Lz = 2.02, 2.02, 1  # DONT modify Lz!
 
 pb = periodicDomain(Lx, Ly, 2)
-b = box((Lx, Ly, Lz), (64, 64, 32), pb=pb, orders=(1, 1, 1))  # geometry
+b = box(comm, (Lx, Ly, Lz), (64, 64, 32), pb=pb, orders=(1, 1, 1))  # geometry
 rbc = RayleighBenard(b, 1800, 1.0, dim=3, scaling=('large', 'small'))  # eqns
 wf = rbc.cn()  # crank nicholson weak form
 
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(rbc, 0, 5, 0.01, 0.01, gv=[glob.Ey, glob.Eth, glob.Nu])
+ts = timeStep(comm, rbc, 0, 5, 0.01, 0.01, gv=[glob.Ey, glob.Eth, glob.Nu])
 bcs = b.make_zero(b.on_base())    + b.make_zero(b.on_lid()) + \
       b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
 
