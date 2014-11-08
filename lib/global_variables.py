@@ -28,8 +28,8 @@ class globalVariables:
         self.eqObj = eqObj
         
         # set some variables from eqObj
-        self.P   = self.eqObj.P
-        self.R   = self.eqObj.R
+        self.Pr   = self.eqObj.Pr
+        self.Ra   = self.eqObj.Ra
         self.u   = self.eqObj.u
         self.c   = self.eqObj.c
         self.I   = self.eqObj.I
@@ -43,9 +43,9 @@ class globalVariables:
         Constant new
         """
         if self.Uscaling == "small":
-            return self.P
+            return self.Pr
             
-        return sqrt(self.P/self.R)
+        return sqrt(self.Pr/self.Ra)
                 
     def kappa(self):
         """
@@ -54,7 +54,7 @@ class globalVariables:
         if self.Uscaling == "small":
             return 1.0
             
-        return 1/sqrt(self.R*self.P)
+        return 1/sqrt(self.Ra*self.Pr)
 
     def Ewth(self):
         """
@@ -72,12 +72,12 @@ class globalVariables:
             if self.Uscaling == 'small':
                 return 1 + self.Ewth()
             elif self.Uscaling == 'large':
-                return 1 + sqrt(self.R*self.P)*self.Ewth()
+                return 1 + sqrt(self.Ra*self.Pr)*self.Ewth()
         elif self.Pscaling == 'small':
             if self.Uscaling == 'small':
-                return 1 + self.P**2*self.Ewth()
+                return 1 + self.Pr**2*self.Ewth()
             elif self.Uscaling == 'large':
-                return 1 + self.P*sqrt(self.R*self.P)*self.Ewth()
+                return 1 + self.Pr*sqrt(self.Ra*self.Pr)*self.Ewth()
 
     def Ey(self):
         """

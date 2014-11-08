@@ -32,7 +32,7 @@ from time_step import *
 #PETScOptions.set("pc_factor_mat_solver", "mumps");
 #PETScOptions.set("pc_type", "lu")
 
-#set_log_level(PROGRESS)
+set_log_level(PROGRESS)
 comm = mpi_comm_world()
 
 # Form compiler options
@@ -45,7 +45,7 @@ parameters["allow_extrapolation"] = True
 Lx, Ly, Lz = 2.02, 2.02, 1  # DONT modify Lz!
 
 pb = periodicDomain(Lx, Ly, 2)
-b = box(comm, (Lx, Ly, Lz), (64, 64, 32), pb=pb, orders=(1, 1, 1))  # geometry
+b = box(comm, (Lx, Ly, Lz), (128, 128, 64), pb=pb, orders=(2, 1, 1))  # geometry
 rbc = RayleighBenard(b, 1800, 1.0, dim=3, scaling=('large', 'small'))  # eqns
 wf = rbc.cn()  # crank nicholson weak form
 

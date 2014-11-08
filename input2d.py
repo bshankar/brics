@@ -36,24 +36,26 @@ set_log_level(ERROR)
 comm = mpi_comm_world()
 
 # Form compiler options
-parameters["form_compiler"]["optimize"]     = True
+parameters["form_compiler"]["optimize"]     = False
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["linear_algebra_backend"] = "PETSc"
 parameters["allow_extrapolation"] = True
 
 ###############################################################
 
-Lx, Lz = 2.02, 1.0  # DONT modify Lz!
+Lx, Lz = 2.017, 1.0  # DONT modify Lz!
 # Lx Ly Lz must be set at the top of lib/geometry.py!
 
 pb = periodicDomain(Lx, Lz, 1)
 b = box(comm, (Lx, Lz), (128, 64), orders=(2, 1, 1), pb=pb)  # geometry
-rbc = RayleighBenard(b, 10000, 0.71, scaling=('large', 'small'))  # eqns
-wf = rbc.cn()  # crank nicholson weak form
-
+rbc = RayleighBenard(b, 5000, 0.71, scaling=('large', 'small'))  # eqns
+U_am2, P_am2, C_am2 = rbc.UPC('am2')
+wf_am2 = rbc.linear_terms(U_am2, P_am2, C_am2) + rbc.nonlinear_terms('am2')
+U_am3, P_am3, C_am3 = rbc.UPC('am3')
+wf_am3 = rbc.linear_terms(U_am3, P_am3, C_am3) + rbc.nonlinear_terms('am3')
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(comm, rbc, 0, 10.0, 0.01, 0.2, gv=[glob.Ey, glob.Eth, glob.Nu])
+ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu])
 
 # set the boundary conditions
 temp_bcs =  b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
@@ -64,17 +66,23 @@ bcs = no_slip_bcs + temp_bcs
 
 ################################################################
 
-J = derivative(wf, rbc.u_, rbc.du_)
-problem = NonlinearVariationalProblem(wf, rbc.u_, bcs, J)
-solver = NonlinearVariationalSolver(problem)
+J_am2 = derivative(wf_am2, rbc.u_, rbc.du_)
+J_am3 = derivative(wf_am3, rbc.u_, rbc.du_)
+problem_am2 = NonlinearVariationalProblem(wf_am2, rbc.u_, bcs, J_am2)
+problem_am3 = NonlinearVariationalProblem(wf_am3, rbc.u_, bcs, J_am3)
+solver_am2 = NonlinearVariationalSolver(problem_am2)
+solver_am3 = NonlinearVariationalSolver(problem_am3)
 
 #Solver parameters
-prm = solver.parameters
-prm['newton_solver']['linear_solver'] = 'lu'
-prm['newton_solver']['absolute_tolerance'] = 1E-8
-prm['newton_solver']['relative_tolerance'] = 1E-7
-prm['newton_solver']['maximum_iterations'] = 25
-prm['newton_solver']['relaxation_parameter'] = 1.0
+prm_am2 = solver_am2.parameters
+prm_am3 = solver_am3.parameters
+prm_am2['newton_solver']['linear_solver'] = 'lu'
+prm_am2['newton_solver']['absolute_tolerance'] = 1E-7
+prm_am2['newton_solver']['relative_tolerance'] = 1E-6
+prm_am2['newton_solver']['maximum_iterations'] = 25
+prm_am2['newton_solver']['relaxation_parameter'] = 1.0
+
+prm_am3 = prm_am2
 
 #prm = solver.parameters
 #prm['nonlinear_solver'] = 'snes' 
@@ -91,6 +99,7 @@ prm['newton_solver']['relaxation_parameter'] = 1.0
 
 #plot(b.mesh)
 #interactive()
-ts.constant_dt(solver, "xdmf", True)
+ts.constant_dt(solver_am2, 0, 10, 0.01, 0.05, "foldered_hdf5", True)
+#ts.constant_dt(solver_am3, 0.03, 3, 0.01, 0.05, "xdmf", True)
 
 ################################################################

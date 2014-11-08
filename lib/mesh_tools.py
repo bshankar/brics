@@ -90,7 +90,7 @@ def box_mesh_name(dim, res):
     return ".cache/" + mesh_id
 
 
-def DenserBox(comm, dim, res, s=1.2, outputFormat="hdf5"):    
+def DenserBox(comm, dim, res, s=1.1, outputFormat="hdf5"):    
     
     if len(dim) == 2:
         mesh = RectangleMesh(0, 0, dim[0], dim[1], res[0], res[1])

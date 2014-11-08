@@ -28,7 +28,8 @@ class constInitCondition_2d(Expression):
     def __init__(self):
         pass
     def eval(self, values, x):
-        values[3] = 0.01*(1-sin(2*pi*x[1]))
+        values[0] = 0.001*sin(pi*x[1])*cos(x[0])
+        values[1] = 0.001*sin(pi*x[1])*sin(x[0])
             
     def value_shape(self):
         return (4,)
@@ -46,7 +47,7 @@ class constInitCondition_3d(Expression):
 
 class timeStep(globalVariables):
 	
-    def __init__(self, comm, eqObj, t, T, dt=0.01, dt_save=0.01, gv=[], initData=None):
+    def __init__(self, comm, eqObj, gv=[], initData=None):
         """
         eqObj     ---- eqns object
         gvObj     ---- global variables object
@@ -56,10 +57,6 @@ class timeStep(globalVariables):
         initData  ---- initial data file
         """
         
-        self.t = t
-        self.T = T
-        self.dt = dt
-        self.dt_save = dt_save
         self.gv = gv
         self.eqObj = eqObj
         self.comm = comm
@@ -75,12 +72,14 @@ class timeStep(globalVariables):
             if eqObj.dim == 2:
                 eqObj.u_.interpolate(constInitCondition_2d())
                 eqObj.u0_.interpolate(constInitCondition_2d())
+                eqObj.u00_.interpolate(constInitCondition_2d())
             elif eqObj.dim == 3:
                 eqObj.u_.interpolate(constInitCondition_3d())
                 eqObj.u0_.interpolate(constInitCondition_3d())
+                eqObj.u00_.interpolate(constInitCondition_3d())
                 
   
-    def constant_dt(self, solver, save_as="hdf5", save_uniform=False):
+    def constant_dt(self, solver, t, T, dt, dt_save, save_as="hdf5", save_uniform=False):
         """
         Use constant dt for time stepping
         
@@ -108,9 +107,8 @@ class timeStep(globalVariables):
             u_file.parameters["rewrite_function_mesh"] = False
             c_file.parameters["rewrite_function_mesh"] = False
             
-        t, T = self.t, self.T
         if MPI.rank(self.comm) == 0:
-            print "Time stepping with a constant dt=%g"%self.dt
+            print "Time stepping with a constant dt=%g"%dt
             if not os.path.isfile("output/glob.d"):
                 if MPI.rank(self.comm) == 0:
                     print "creating file output/glob.d"
@@ -119,9 +117,11 @@ class timeStep(globalVariables):
             glob_file = open("output/glob.d", 'a', 0)
         
         while t < T:
-            t += self.dt
+            t += dt
             if MPI.rank(self.comm) == 0:
                 print "t=%g out of T=%g"%(t, T)
+                
+            self.eqObj.u00_.vector()[:] = self.eqObj.u0_.vector()
             self.eqObj.u0_.vector()[:] = self.eqObj.u_.vector()
             solver.solve()
             gv_ = {func.__name__:func() for func in self.gv}
@@ -154,7 +154,7 @@ class timeStep(globalVariables):
                 p1 = interpolate_to_mesh(p, mesh1, mesh2)
                 c1 = interpolate_to_mesh(c, mesh1, mesh2)
                 
-            if save_as == "hdf5" and t % self.dt_save < 1e-14:
+            if save_as == "hdf5" and t % dt_save < 1e-14:
                 # save in hdf5 format
                 out_file.write(u, "velocity/%g"%t)
                 out_file.write(p, "pressure/%g"%t)
@@ -165,14 +165,15 @@ class timeStep(globalVariables):
                     out_file_u.write(p1, "pressure/%g"%t)
                     out_file_u.write(c1, "temperature/%g"%t)
 
-            elif save_as == "xdmf" and t % self.dt_save < 1e-14:
+            elif save_as == "xdmf" and t % dt_save < 1e-14:
                 u_file << u, t
                 c_file << c, t
                 
-            elif save_as == "foldered_hdf5" and t % self.dt_save < 1e-14:
+            elif save_as == "foldered_hdf5" and t % dt_save < 1e-14:
                 dir_ = "output/time_%g"%t
-                if not os.path.exists(dir_):
-                    os.makedirs(dir_)
+                if MPI.rank(self.comm) == 0:
+                    if not os.path.exists(dir_):
+                        os.makedirs(dir_)
                     
                 u_file = HDF5File(self.comm, "%s/u.h5"%dir_, 'w') 
                 p_file = HDF5File(self.comm, "%s/p.h5"%dir_, 'w') 
