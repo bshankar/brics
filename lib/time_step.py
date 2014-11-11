@@ -47,7 +47,7 @@ class constInitCondition_3d(Expression):
 
 class timeStep(globalVariables):
 	
-    def __init__(self, comm, eqObj, gv=[], initData=None):
+    def __init__(self, comm, eqObj, gv=[], initData=None, out_folder = None, save_as='hdf5', save_uniform=False):
         """
         eqObj     ---- eqns object
         gvObj     ---- global variables object
@@ -77,9 +77,16 @@ class timeStep(globalVariables):
                 eqObj.u_.interpolate(constInitCondition_3d())
                 eqObj.u0_.interpolate(constInitCondition_3d())
                 eqObj.u00_.interpolate(constInitCondition_3d())
+
+        self.out_dir_ = 'output/'
+        if out_folder != None:
+            self.out_dir = out_folder + '/'
+
+        self.save_as = save_as
+        self.save_uniform = save_uniform
                 
   
-    def constant_dt(self, solver, t, T, dt, dt_save, save_as="hdf5", save_uniform=False):
+    def constant_dt(self, solver, t, T, dt, dt_save):
         """
         Use constant dt for time stepping
         
@@ -91,15 +98,20 @@ class timeStep(globalVariables):
             "foldered_hdf5" for large data sets
             
         save_uniform ---- create and save a dataset on a uniform mesh.
-        """
+        """        
+       
+        save_as = self.save_as
+        save_uniform = self.save_uniform
+        out_dir = self.out_dir
+
         if save_as == "hdf5":
-            out_file = HDF5File(self.comm, "output/out.h5", "w")
+            out_file = HDF5File(self.comm, out_dir+"out.h5", "w")
             if save_uniform:
-                out_file_u = HDF5File(self.comm, "output/out_uniform.h5", "w")
+                out_file_u = HDF5File(self.comm, out_dir+"out_uniform.h5", "w")
         
         elif save_as == "xdmf":
-            u_file = XDMFFile(self.comm, "output/u.xdmf")
-            c_file = XDMFFile(self.comm, "output/c.xdmf")
+            u_file = XDMFFile(self.comm, out_dir+"u.xdmf")
+            c_file = XDMFFile(self.comm, out_dir+"c.xdmf")
             # flush output immediately
             u_file.parameters["flush_output"] = True
             c_file.parameters["flush_output"] = True
@@ -109,12 +121,12 @@ class timeStep(globalVariables):
             
         if MPI.rank(self.comm) == 0:
             print "Time stepping with a constant dt=%g"%dt
-            if not os.path.isfile("output/glob.d"):
+            if not os.path.isfile("%sglob.d"%out_dir):
                 if MPI.rank(self.comm) == 0:
-                    print "creating file output/glob.d"
-                os.system("mkdir -p output/")
-                os.system("touch output/glob.d")
-            glob_file = open("output/glob.d", 'a', 0)
+                    print "creating file glob.d"
+                os.system("mkdir -p %s"%out_dir)
+                os.system("touch %sglob.d"%out_dir)
+            glob_file = open("%sglob.d"%out_dir, 'a', 0)
         
         while t < T:
             t += dt
@@ -170,7 +182,7 @@ class timeStep(globalVariables):
                 c_file << c, t
                 
             elif save_as == "foldered_hdf5" and t % dt_save < 1e-14:
-                dir_ = "output/time_%g"%t
+                dir_ = out_dir+"time_%g"%t
                 if MPI.rank(self.comm) == 0:
                     if not os.path.exists(dir_):
                         os.makedirs(dir_)

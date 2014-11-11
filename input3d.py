@@ -52,7 +52,14 @@ wf = rbc.linear_terms(U, P, C) + rbc.nonlinear_terms('am2')  # crank nicholson w
 
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu])
+
+try:
+    folder = sys.argv[1]
+except:
+    folder = 'output/'
+
+ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu], out_folder = folder, 
+                                        save_as='foldered_hdf5', save_uniform=False)
 temp_bcs = b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
 bcs = b.free_slip_z() + temp_bcs
 
@@ -76,6 +83,6 @@ prm['newton_solver']['relaxation_parameter'] = 1.0
 #problem = LinearVariationalProblem(a, L, rbc.u_, bcs=bcs)
 #solver = LinearVariationalSolver(problem)
 
-ts.constant_dt(solver, 0, 10, 0.01, 0.01, "xdmf", True)
+ts.constant_dt(solver, 0, 10, 0.01, 0.01)
 
 ################################################################

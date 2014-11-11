@@ -51,11 +51,14 @@ b = box(comm, (Lx, Lz), (128, 64), (1, 1.2), orders=(2, 1, 1), pb=pb)  # geometr
 rbc = RayleighBenard(b, 657*30, 6.8, scaling=('large', 'small'))  # eqns
 U_am2, P_am2, C_am2 = rbc.UPC('am2')
 wf_am2 = rbc.linear_terms(U_am2, P_am2, C_am2) + rbc.nonlinear_terms('am2')
-U_am3, P_am3, C_am3 = rbc.UPC('am3')
-wf_am3 = rbc.linear_terms(U_am3, P_am3, C_am3) + rbc.nonlinear_terms('am3')
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu])
+
+try:
+    folder = sys.argv[1]
+except:
+    folder = 'output/'
+ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu], save_as='foldered_hdf5', out_folder=folder)
 
 # set the boundary conditions
 temp_bcs =  b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
@@ -67,39 +70,17 @@ bcs = b.free_slip_z() + temp_bcs
 ################################################################
 
 J_am2 = derivative(wf_am2, rbc.u_, rbc.du_)
-J_am3 = derivative(wf_am3, rbc.u_, rbc.du_)
 problem_am2 = NonlinearVariationalProblem(wf_am2, rbc.u_, bcs, J_am2)
-problem_am3 = NonlinearVariationalProblem(wf_am3, rbc.u_, bcs, J_am3)
 solver_am2 = NonlinearVariationalSolver(problem_am2)
-solver_am3 = NonlinearVariationalSolver(problem_am3)
 
 #Solver parameters
 prm_am2 = solver_am2.parameters
-prm_am3 = solver_am3.parameters
 prm_am2['newton_solver']['linear_solver'] = 'lu'
 prm_am2['newton_solver']['absolute_tolerance'] = 1E-8
 prm_am2['newton_solver']['relative_tolerance'] = 1E-7
 prm_am2['newton_solver']['maximum_iterations'] = 25
 prm_am2['newton_solver']['relaxation_parameter'] = 1.0
 
-prm_am3 = prm_am2
-
-#prm = solver.parameters
-#prm['nonlinear_solver'] = 'snes' 
-#prm_snes   = prm['snes_solver']
-#prm_snes['linear_solver'] = 'gmres'
-#prm_snes['absolute_tolerance'] = 1e-7
-#prm_snes['relative_tolerance'] = 1e-6
-#prm_snes['solution_tolerance'] = 1e-8
-#prm_snes['report'] = False
-#prm_krylov = prm_snes['krylov_solver']
-#prm_krylov['absolute_tolerance'] = 1e-7
-#prm_krylov['relative_tolerance'] = 1e-5
-#prm_krylov['gmres']['restart'] = 100
-
-#plot(b.mesh)
-#interactive()
-ts.constant_dt(solver_am2, 0, 10, 0.01, 1.0, "foldered_hdf5", True)
-#ts.constant_dt(solver_am3, 0.03, 3, 0.01, 0.05, "xdmf", True)
+ts.constant_dt(solver_am2, 0, 10, 0.01, 1.0)
 
 ################################################################
