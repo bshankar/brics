@@ -26,6 +26,9 @@ Running the code:
     $ python2 input2d.py   # sample input file for 2d box
     $ python2 input3d.py   # sample input file for 3d box
 
+In addition you can name an output directory to dump the solutions for example,
+    $ python2 input2d.py <folder>
+
 Terms of Use
 ============
 Brics is free, and distributed under the GNU General Public License (GPL). Essentially, this means that you are free to do almost exactly what you want with the program, including distributing it among your friends, making it available for download from your web site, selling it (either by itself or as part of some bigger software package), or using it as the starting point for a software project of your own.
