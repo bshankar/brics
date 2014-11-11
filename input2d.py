@@ -43,12 +43,12 @@ parameters["allow_extrapolation"] = True
 
 ###############################################################
 
-Lx, Lz = 2.017, 1.0  # DONT modify Lz!
+Lx, Lz = 2.828, 1.0  # DONT modify Lz!
 # Lx Ly Lz must be set at the top of lib/geometry.py!
 
 pb = periodicDomain(Lx, Lz, 1)
-b = box(comm, (Lx, Lz), (128, 64), orders=(2, 1, 1), pb=pb)  # geometry
-rbc = RayleighBenard(b, 5000, 0.71, scaling=('large', 'small'))  # eqns
+b = box(comm, (Lx, Lz), (128, 64), (1, 1.2), orders=(2, 1, 1), pb=pb)  # geometry
+rbc = RayleighBenard(b, 657*30, 6.8, scaling=('large', 'small'))  # eqns
 U_am2, P_am2, C_am2 = rbc.UPC('am2')
 wf_am2 = rbc.linear_terms(U_am2, P_am2, C_am2) + rbc.nonlinear_terms('am2')
 U_am3, P_am3, C_am3 = rbc.UPC('am3')
@@ -60,9 +60,9 @@ ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu])
 # set the boundary conditions
 temp_bcs =  b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
 no_slip_bcs = b.make_zero(b.on_base())    + b.make_zero(b.on_lid()) 
-
 # choose the set of boundary conditions
-bcs = no_slip_bcs + temp_bcs 
+#bcs = no_slip_bcs + temp_bcs 
+bcs = b.free_slip_z() + temp_bcs 
 
 ################################################################
 
@@ -77,8 +77,8 @@ solver_am3 = NonlinearVariationalSolver(problem_am3)
 prm_am2 = solver_am2.parameters
 prm_am3 = solver_am3.parameters
 prm_am2['newton_solver']['linear_solver'] = 'lu'
-prm_am2['newton_solver']['absolute_tolerance'] = 1E-7
-prm_am2['newton_solver']['relative_tolerance'] = 1E-6
+prm_am2['newton_solver']['absolute_tolerance'] = 1E-8
+prm_am2['newton_solver']['relative_tolerance'] = 1E-7
 prm_am2['newton_solver']['maximum_iterations'] = 25
 prm_am2['newton_solver']['relaxation_parameter'] = 1.0
 
@@ -99,7 +99,7 @@ prm_am3 = prm_am2
 
 #plot(b.mesh)
 #interactive()
-ts.constant_dt(solver_am2, 0, 10, 0.01, 0.05, "foldered_hdf5", True)
+ts.constant_dt(solver_am2, 0, 10, 0.01, 1.0, "foldered_hdf5", True)
 #ts.constant_dt(solver_am3, 0.03, 3, 0.01, 0.05, "xdmf", True)
 
 ################################################################

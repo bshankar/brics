@@ -90,7 +90,7 @@ def box_mesh_name(dim, res):
     return ".cache/" + mesh_id
 
 
-def DenserBox(comm, dim, res, s=1.1, outputFormat="hdf5"):    
+def DenserBox(comm, dim, res, s=(1, 1, 1.3), outputFormat="hdf5"):    
     
     if len(dim) == 2:
         mesh = RectangleMesh(0, 0, dim[0], dim[1], res[0], res[1])
@@ -107,10 +107,10 @@ def DenserBox(comm, dim, res, s=1.1, outputFormat="hdf5"):
         
     #make them denser towards ends 
     # re-scale and displace to from 0 to a or 0 to b
-    #mesh.coordinates()[:, 0] = 0.5*(denser(X, s) + 1)*dim[0]
-    #mesh.coordinates()[:, 1] = 0.5*(denser(Y, s) + 1)*dim[1]
+    mesh.coordinates()[:, 0] = 0.5*(denser(X, s[0]) + 1)*dim[0]
+    mesh.coordinates()[:, 1] = 0.5*(denser(Y, s[1]) + 1)*dim[1]
     if len(dim) == 3:
-        mesh.coordinates()[:, 2] = 0.5*(denser(Z, s) + 1)*dim[2]
+        mesh.coordinates()[:, 2] = 0.5*(denser(Z, s[2]) + 1)*dim[2]
     # save the mesh
     saveMesh(comm, mesh, box_mesh_name(dim, res), outputFormat) 
         

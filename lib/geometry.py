@@ -29,21 +29,22 @@ class box:
     specify the boundary conditions
     """
     
-    def __init__(self, comm, dim, res, orders=(1,1,1), scales=('large', 'small'), pb=None):
+    def __init__(self, comm, dim, res, s, orders=(1,1,1), scales=('large', 'small'), pb=None):
         """
-		dim    ----  dimensions of the box
+        dim    ----  dimensions of the box
         res    ----  resolution of the box
         orders ----  order of basis function (higher orders are more accurate but slower)
+        s      ----  stretch factors
         pb     ----  periodic boundary condition function
 		"""
         self.dim = dim
         self.res = res
-        self.Lz = 1
+        self.z_dir = len(self.dim) - 1
 
         if not os.path.isfile(box_mesh_name(dim, res)+".h5"):
             if MPI.rank(comm) == 0:
                 print "Creating a mesh ..."
-            DenserBox(comm, dim, res) # create a mesh
+            DenserBox(comm, dim, res, s) # create a mesh
         
         # load mesh
         f = HDF5File(comm, box_mesh_name(dim, res)+".h5", 'r')
@@ -96,6 +97,10 @@ class box:
             return [DirichletBC(self.VWX.sub(0), zeros, direction), ]
         else:
             return [DirichletBC(self.VWX.sub(sS), 0, direction)]
+    
+    def free_slip_z(self):
+        return [DirichletBC(self.VWX.sub(0).sub(self.z_dir), 0, self.on_lid()),
+                DirichletBC(self.VWX.sub(0).sub(self.z_dir), 0, self.on_base())]
 
 def periodicDomain(Lx, Ly, directions):
     if directions == 1:

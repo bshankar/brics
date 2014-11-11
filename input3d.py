@@ -45,15 +45,18 @@ parameters["allow_extrapolation"] = True
 Lx, Ly, Lz = 2.02, 2.02, 1  # DONT modify Lz!
 
 pb = periodicDomain(Lx, Ly, 2)
-b = box(comm, (Lx, Ly, Lz), (128, 128, 64), pb=pb, orders=(2, 1, 1))  # geometry
-rbc = RayleighBenard(b, 1800, 1.0, dim=3, scaling=('large', 'small'))  # eqns
-wf = rbc.cn()  # crank nicholson weak form
+b = box(comm, (Lx, Ly, Lz), (64, 64, 32), (0, 0, 1.2), pb=pb, orders=(1, 1, 1))  # geometry
+rbc = RayleighBenard(b, 2800, 1.0, dim=3, scaling=('large', 'small'))  # eqns
+U, P, C = rbc.UPC('am2')
+wf = rbc.linear_terms(U, P, C) + rbc.nonlinear_terms('am2')  # crank nicholson weak form
 
 # initial conditions
 glob = globalVariables(b, rbc)
-ts = timeStep(comm, rbc, 0, 5, 0.01, 0.01, gv=[glob.Ey, glob.Eth, glob.Nu])
-bcs = b.make_zero(b.on_base())    + b.make_zero(b.on_lid()) + \
-      b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
+ts = timeStep(comm, rbc, gv=[glob.Ey, glob.Eth, glob.Nu])
+temp_bcs = b.make_zero(b.on_base(), 2) + b.make_zero(b.on_lid(), 2)
+bcs = b.free_slip_z() + temp_bcs
+
+
 
 ################################################################
 
@@ -73,6 +76,6 @@ prm['newton_solver']['relaxation_parameter'] = 1.0
 #problem = LinearVariationalProblem(a, L, rbc.u_, bcs=bcs)
 #solver = LinearVariationalSolver(problem)
 
-ts.constant_dt(solver, "xdmf", True)
+ts.constant_dt(solver, 0, 10, 0.01, 0.01, "xdmf", True)
 
 ################################################################

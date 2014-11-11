@@ -28,8 +28,8 @@ class constInitCondition_2d(Expression):
     def __init__(self):
         pass
     def eval(self, values, x):
-        values[0] = 0.001*sin(pi*x[1])*cos(x[0])
-        values[1] = 0.001*sin(pi*x[1])*sin(x[0])
+        values[0] = 0.0001*sin(pi*x[1])*cos(x[0])
+        values[1] = 0.0001*sin(pi*x[1])*sin(x[0])
             
     def value_shape(self):
         return (4,)
