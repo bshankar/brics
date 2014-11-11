@@ -45,7 +45,7 @@ parameters["allow_extrapolation"] = True
 Lx, Ly, Lz = 2.02, 2.02, 1  # DONT modify Lz!
 
 pb = periodicDomain(Lx, Ly, 2)
-b = box(comm, (Lx, Ly, Lz), (64, 64, 32), (0, 0, 1.2), pb=pb, orders=(1, 1, 1))  # geometry
+b = box(comm, (Lx, Ly, Lz), (64, 64, 32), (1, 1, 1.2), pb=pb, orders=(1, 1, 1))  # geometry
 rbc = RayleighBenard(b, 2800, 1.0, dim=3, scaling=('large', 'small'))  # eqns
 U, P, C = rbc.UPC('am2')
 wf = rbc.linear_terms(U, P, C) + rbc.nonlinear_terms('am2')  # crank nicholson weak form
